@@ -102,5 +102,6 @@ export function parseCoinSummary(data: Record<string, unknown>): CoinSummary {
     genesisDate: asString(data.genesis_date),
     categories: asStringArray(data.categories),
     sentimentVotesUpPct: asNumber(data.sentiment_votes_up_percentage),
+    marketCapRank: asNumber(data.market_cap_rank),
   }
 }
