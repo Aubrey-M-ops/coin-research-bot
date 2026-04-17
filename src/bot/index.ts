@@ -1,20 +1,18 @@
 import { Bot } from "grammy"
 import { registerCommands } from "./commands.ts"
 
-export function startBot(): void {
+export async function startBot(): Promise<void> {
   const token = Bun.env.TELEGRAM_BOT_TOKEN
   if (!token) throw new Error("TELEGRAM_BOT_TOKEN must be set")
 
   const bot = new Bot(token)
 
-  // Debug: log every incoming update type (must be before registerCommands)
-  bot.use((ctx, next) => {
-    const updateType = Object.keys(ctx.update).filter((k) => k !== "update_id")[0]
-    const chatId = ctx.chat?.id ?? ctx.channelPost?.chat?.id
-    const text = ctx.message?.text ?? ctx.channelPost?.text ?? ""
-    console.log(`[update] type=${updateType} chatId=${chatId} text="${text.slice(0, 80)}"`)
-    return next()
-  })
+  // Register slash commands so they appear in Telegram's hint menu
+  await bot.api.setMyCommands([
+    { command: "research", description: "完整研究报告，例如：/research bitcoin" },
+    { command: "r", description: "简写形式，例如：/r BTC" },
+    { command: "help", description: "使用说明" },
+  ])
 
   registerCommands(bot)
 
