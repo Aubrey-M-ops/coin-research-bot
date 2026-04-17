@@ -9,8 +9,17 @@ import type { DexPair } from "../types/dex.ts"
 
 const claude = new Anthropic({ apiKey: Bun.env.ANTHROPIC_API_KEY })
 
+function normalizeQuery(query: string): string {
+  return query
+    .trim()
+    .replace(/\b(coin|token|crypto|protocol|finance|network|chain)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
 export async function researchCoin(query: string): Promise<string> {
-  const coinMeta = await searchCoin(query)
+  const normalized = normalizeQuery(query)
+  const coinMeta = await searchCoin(normalized) ?? (normalized !== query ? await searchCoin(query) : null)
   if (!coinMeta) return `❌ 未找到与 *${query}* 匹配的代币，请检查名称或 ticker 是否正确。`
 
   const coinId = coinMeta.id
