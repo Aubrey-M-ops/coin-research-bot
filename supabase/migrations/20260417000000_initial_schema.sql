@@ -1,3 +1,4 @@
+-- Initial schema: coin_analyses table
 CREATE TABLE IF NOT EXISTS coin_analyses (
   coin_id                  TEXT PRIMARY KEY,
   name                     TEXT NOT NULL,

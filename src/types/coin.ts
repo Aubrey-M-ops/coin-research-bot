@@ -20,4 +20,5 @@ export interface CoinSummary {
   genesisDate?: string
   categories: string[]
   sentimentVotesUpPct?: number
+  marketCapRank?: number
 }
