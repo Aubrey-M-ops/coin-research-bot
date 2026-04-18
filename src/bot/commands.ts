@@ -2,6 +2,43 @@ import type { Bot, Context } from "grammy"
 import { researchCoin } from "../agent/research.ts"
 
 const ALLOWED_CHANNEL_ID = Bun.env.TELEGRAM_CHANNEL_ID
+const DEFAULT_RESEARCH_TIMEOUT_MS = 90_000
+
+class ResearchTimeoutError extends Error {
+  constructor(readonly timeoutMs: number) {
+    super(`research timed out after ${timeoutMs}ms`)
+    this.name = "ResearchTimeoutError"
+  }
+}
+
+function readPositiveIntEnv(name: string, fallback: number): number {
+  const raw = Bun.env[name]
+  if (!raw) return fallback
+
+  const value = Number.parseInt(raw, 10)
+  return Number.isFinite(value) && value > 0 ? value : fallback
+}
+
+const RESEARCH_TIMEOUT_MS = readPositiveIntEnv("KOL_RESEARCH_TIMEOUT_MS", DEFAULT_RESEARCH_TIMEOUT_MS)
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout>
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => reject(new ResearchTimeoutError(timeoutMs)), timeoutMs)
+  })
+
+  return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeout))
+}
+
+async function researchCoinWithTimeout(query: string): Promise<string> {
+  return withTimeout(researchCoin(query), RESEARCH_TIMEOUT_MS)
+}
+
+function formatTimeoutSkipMessage(query: string): string {
+  const seconds = Math.round(RESEARCH_TIMEOUT_MS / 1000)
+  return `⏭️ *${query}* 研究超过 ${seconds}s，已跳过本条，避免阻塞后续信息推送。`
+}
 
 export function registerCommands(bot: Bot): void {
   const helpText = `🤖 *Crypto Research Bot*
@@ -47,12 +84,20 @@ async function handleResearch(ctx: Context): Promise<void> {
   const placeholder = await ctx.reply(`🔍 正在研究 *${args}*，请稍候...`, { parse_mode: "Markdown" })
 
   try {
-    const report = await researchCoin(args)
+    const report = await researchCoinWithTimeout(args)
     await ctx.api.editMessageText(placeholder.chat.id, placeholder.message_id, report, {
       parse_mode: "Markdown",
       link_preview_options: { is_disabled: true },
     })
   } catch (err) {
+    if (err instanceof ResearchTimeoutError) {
+      console.warn(`[bot] research timed out, skipped: query="${args}" timeoutMs=${err.timeoutMs}`)
+      await ctx.api.editMessageText(placeholder.chat.id, placeholder.message_id, formatTimeoutSkipMessage(args), {
+        parse_mode: "Markdown",
+      })
+      return
+    }
+
     console.error("[bot] research failed:", err)
     const msg = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200)
     await ctx.api.editMessageText(placeholder.chat.id, placeholder.message_id, `❌ 研究过程中出现错误：${msg}`)
@@ -118,12 +163,20 @@ async function runResearchInChat(
   })
 
   try {
-    const report = await researchCoin(query)
+    const report = await researchCoinWithTimeout(query)
     await ctx.api.editMessageText(numericChatId, placeholder.message_id, report, {
       parse_mode: "Markdown",
       link_preview_options: { is_disabled: true },
     })
   } catch (err) {
+    if (err instanceof ResearchTimeoutError) {
+      console.warn(`[bot] channel research timed out, skipped: query="${query}" timeoutMs=${err.timeoutMs}`)
+      await ctx.api.editMessageText(numericChatId, placeholder.message_id, formatTimeoutSkipMessage(query), {
+        parse_mode: "Markdown",
+      })
+      return
+    }
+
     console.error("[bot] channel research failed:", err)
     const msg = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200)
     await ctx.api.editMessageText(numericChatId, placeholder.message_id, `❌ 研究过程中出现错误：${msg}`)
