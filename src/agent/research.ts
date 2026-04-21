@@ -6,7 +6,23 @@ import { upsertCoinAnalysis } from "../db/coinRepository.ts"
 import type { CoinSummary } from "../types/coin.ts"
 import type { DexPair } from "../types/dex.ts"
 
-const claude = new Anthropic({ apiKey: Bun.env.ANTHROPIC_API_KEY })
+const DEFAULT_CLAUDE_TIMEOUT_MS = 45_000
+
+function readPositiveIntEnv(name: string, fallback: number): number {
+  const raw = Bun.env[name]
+  if (!raw) return fallback
+
+  const value = Number.parseInt(raw, 10)
+  return Number.isFinite(value) && value > 0 ? value : fallback
+}
+
+const CLAUDE_TIMEOUT_MS = readPositiveIntEnv("CLAUDE_TIMEOUT_MS", DEFAULT_CLAUDE_TIMEOUT_MS)
+
+const claude = new Anthropic({
+  apiKey: Bun.env.ANTHROPIC_API_KEY,
+  timeout: CLAUDE_TIMEOUT_MS,
+  maxRetries: 0,
+})
 
 function normalizeQuery(query: string): string {
   return query
@@ -140,13 +156,14 @@ ATH: $${summary.athUsd ?? "N/A"} (当前距 ATH ${summary.athChangePct?.toFixed(
 }
 
 async function getClaudeAnalysis(name: string, symbol: string, context: string): Promise<string> {
-  const response = await claude.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 2000,
-    messages: [
-      {
-        role: "user",
-        content: `你是加密货币研究助手，帮助零经验新手学习币种知识。用户只有 OKX 钱包，初始预算 $50，当前只做现货不开合约。
+  const response = await claude.messages.create(
+    {
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
+      messages: [
+        {
+          role: "user",
+          content: `你是加密货币研究助手，帮助零经验新手学习币种知识。用户只有 OKX 钱包，初始预算 $50，当前只做现货不开合约。
 
 以下是 ${name} (${symbol}) 的数据：
 ${context}
@@ -224,9 +241,11 @@ _DCA = 分批买入，避免一次梭哈在最高点_
 • [ ] [概念C] — [一句话解释]
 
 新术语: [术语1], [术语2], [术语3]`,
-      },
-    ],
-  })
+        },
+      ],
+    },
+    { timeout: CLAUDE_TIMEOUT_MS, maxRetries: 0 },
+  )
 
   return response.content
     .filter((block) => block.type === "text")
