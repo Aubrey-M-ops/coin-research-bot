@@ -38,7 +38,6 @@ export interface CoinAnalysisRecord {
   decentralization_score?: number
   sector?: string
   liquidity_assessment: string
-  concentration_assessment: string
   full_report: string
   categories: string[]
 }

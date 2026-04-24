@@ -17,7 +17,6 @@ CREATE TABLE IF NOT EXISTS coin_analyses (
   decentralization_score   NUMERIC,
   sector                   TEXT,
   liquidity_assessment     TEXT,
-  concentration_assessment TEXT,
   full_report              TEXT,
   categories               TEXT[],
   analysis_count           INTEGER DEFAULT 1,
