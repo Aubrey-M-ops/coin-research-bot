@@ -88,7 +88,6 @@ export async function researchCoin(query: string): Promise<string> {
     decentralization_score: bubbleData?.decentralizationScore,
     sector,
     liquidity_assessment: liquidityAssessment,
-    concentration_assessment: concentrationAssessment,
     full_report: claudeReport,
     categories: summary.categories,
   }).catch((err) => {

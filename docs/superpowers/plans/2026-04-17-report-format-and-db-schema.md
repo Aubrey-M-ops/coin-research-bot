@@ -115,7 +115,6 @@
     decentralization_score   NUMERIC,
     sector                   TEXT,
     liquidity_assessment     TEXT,
-    concentration_assessment TEXT,
     full_report              TEXT,
     categories               TEXT[],
     analysis_count           INTEGER DEFAULT 1,
@@ -221,7 +220,6 @@
     decentralization_score?: number
     sector?: string
     liquidity_assessment: string
-    concentration_assessment: string
     full_report: string
     categories: string[]
   }
@@ -529,7 +527,6 @@ _DCA = 分批买入，避免一次梭哈在最高点_
       decentralization_score: bubbleData?.decentralizationScore,
       sector,
       liquidity_assessment: liquidityAssessment,
-      concentration_assessment: concentrationAssessment,
       full_report: claudeReport,
       categories: summary.categories,
     }).catch((err) => {

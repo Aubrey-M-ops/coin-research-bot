@@ -206,7 +206,6 @@ export interface CoinAnalysisRecord {
   top_liquidity_usd?: number
   decentralization_score?: number
   liquidity_assessment: string
-  concentration_assessment: string
   claude_analysis: string
   categories: string[]
 }
@@ -297,7 +296,6 @@ CREATE TABLE IF NOT EXISTS coin_analyses (
   top_liquidity_usd     NUMERIC,
   decentralization_score NUMERIC,
   liquidity_assessment  TEXT,
-  concentration_assessment TEXT,
   claude_analysis       TEXT,
   categories            TEXT[],
   analysis_count        INTEGER DEFAULT 1,
@@ -779,7 +777,6 @@ export async function researchCoin(query: string): Promise<string> {
     top_liquidity_usd: topPairs[0]?.liquidityUsd,
     decentralization_score: bubbleData?.decentralizationScore,
     liquidity_assessment: liquidityAssessment,
-    concentration_assessment: concentrationAssessment,
     claude_analysis: claudeAnalysis,
     categories: summary.categories,
   })

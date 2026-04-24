@@ -1,5 +1,6 @@
 import type { Bot, Context } from "grammy"
 import { researchCoin } from "../agent/research.ts"
+import { queryCoinAnalysis } from "../db/coinRepository.ts"
 
 const ALLOWED_CHANNEL_ID = Bun.env.TELEGRAM_CHANNEL_ID
 const DEFAULT_RESEARCH_TIMEOUT_MS = 90_000
@@ -46,13 +47,15 @@ export function registerCommands(bot: Bot): void {
 帮你快速研究 KOL 推荐的币，识别潜在风险。
 
 *命令:*
-• \`/research <币名>\` - 完整研究报告
+• \`/research <币名>\` - 完整研究报告（实时拉取数据）
 • \`/r <ticker>\` - 简写形式
+• \`/lookup <币名>\` - 查询已存档报告（秒回）
+• \`/l <ticker>\` - 简写形式
 
 *示例:*
 • \`/r BTC\`
 • \`/research pepe coin\`
-• \`/r WIF\`
+• \`/l WIF\`
 
 *报告包含:*
 ✅ 基本市场数据
@@ -65,11 +68,50 @@ export function registerCommands(bot: Bot): void {
 
   bot.command(["start", "help"], (ctx) => ctx.reply(helpText, { parse_mode: "Markdown" }))
   bot.command(["research", "r"], handleResearch)
+  bot.command(["lookup", "l"], handleLookup)
 
   // Handle @mention in groups/supergroups
   bot.on("message:entities:mention", handleMentionResearch)
   // Handle @mention in channels (channel_post updates)
   bot.on("channel_post", handleChannelPostResearch)
+}
+
+async function handleLookup(ctx: Context): Promise<void> {
+  const args = typeof ctx.match === "string" ? ctx.match.trim() : ""
+  if (!args) {
+    await ctx.reply("请提供代币名称或 ticker，例如：\n`/lookup BTC`\n`/l pepe`", {
+      parse_mode: "Markdown",
+    })
+    return
+  }
+
+  const result = await queryCoinAnalysis(args)
+
+  if (!result || !result.full_report) {
+    await ctx.reply(
+      `❌ 数据库中没有 *${args}* 的记录。\n\n使用 \`/research ${args}\` 发起首次研究。`,
+      { parse_mode: "Markdown" },
+    )
+    return
+  }
+
+  const analyzedAt = new Date(result.last_analyzed_at).toLocaleString("zh-CN", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+
+  const footer = `\n\n📦 _已存档报告 · 分析于 ${analyzedAt} CST · 共研究 ${result.analysis_count} 次_\n_获取最新数据请用 /research ${result.symbol}_`
+
+  const fullMessage = result.full_report + footer
+
+  await ctx.reply(fullMessage, {
+    parse_mode: "Markdown",
+    link_preview_options: { is_disabled: true },
+  })
 }
 
 async function handleResearch(ctx: Context): Promise<void> {

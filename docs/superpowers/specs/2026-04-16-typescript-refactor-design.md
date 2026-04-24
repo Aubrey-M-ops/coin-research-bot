@@ -174,7 +174,6 @@ research.ts
 | `top_liquidity_usd` | `numeric` | 最大交易对流动性 |
 | `decentralization_score` | `numeric` | Bubblemaps 去中心化评分（可空） |
 | `liquidity_assessment` | `text` | 流动性文字评估 |
-| `concentration_assessment` | `text` | 持币集中度文字评估 |
 | `claude_analysis` | `text` | Claude 完整分析文本 |
 | `categories` | `text[]` | 分类标签数组 |
 | `analysis_count` | `integer DEFAULT 1` | 累计分析次数 |
@@ -203,7 +202,6 @@ CREATE TABLE coin_analyses (
   top_liquidity_usd     NUMERIC,
   decentralization_score NUMERIC,
   liquidity_assessment  TEXT,
-  concentration_assessment TEXT,
   claude_analysis       TEXT,
   categories            TEXT[],
   analysis_count        INTEGER DEFAULT 1,
