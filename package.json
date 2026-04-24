@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "start": "bun run index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "deploy:ssh": "bash scripts/deploy-ssh.sh"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
