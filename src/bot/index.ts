@@ -1,5 +1,6 @@
 import { Bot } from "grammy"
 import { registerCommands } from "./commands.ts"
+import { scheduleDailyReview } from "../scheduler/dailyReview.ts"
 
 export async function startBot(): Promise<void> {
   const token = Bun.env.TELEGRAM_BOT_TOKEN
@@ -15,6 +16,7 @@ export async function startBot(): Promise<void> {
   ])
 
   registerCommands(bot)
+  scheduleDailyReview(bot)
 
   console.log("Bot started. Polling...")
   bot.start({ drop_pending_updates: true })
