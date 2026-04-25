@@ -4,6 +4,8 @@
 
 # Crypto Research Bot
 
+![Crypto Research Bot Banner](public/banner.png)
+
 ![Bun](https://img.shields.io/badge/Bun-000000?style=flat-square&logo=bun&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white) ![Claude Agent_SDK](https://img.shields.io/badge/Claude_Agent_SDK-D97706?style=flat-square&logo=anthropic&logoColor=white) ![Telegram](https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=white) ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white) ![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)
 
 A Telegram bot that aggregates on-chain and market data from multiple sources and uses Claude AI to generate structured research reports on any crypto token.
