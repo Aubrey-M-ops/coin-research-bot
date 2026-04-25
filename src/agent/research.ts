@@ -37,10 +37,20 @@ export async function researchCoin(query: string): Promise<string> {
   const coinMeta = await searchCoin(normalized) ?? (normalized !== query ? await searchCoin(query) : null)
   if (!coinMeta) return `❌ 未找到与 *${query}* 匹配的代币，请检查名称或 ticker 是否正确。`
 
-  const coinId = coinMeta.id
-  const detail = await getCoinDetail(coinId)
+  const detail = await getCoinDetail(coinMeta.id)
   if (!detail) return `❌ 无法获取 *${query}* 的详细信息，CoinGecko 可能暂不收录。`
 
+  return researchFromDetail(coinMeta.id, detail)
+}
+
+export async function researchCoinById(coinId: string): Promise<string> {
+  const detail = await getCoinDetail(coinId)
+  if (!detail) return `❌ 无法获取 coin_id=${coinId} 的详细信息，CoinGecko 可能暂不收录。`
+
+  return researchFromDetail(coinId, detail)
+}
+
+async function researchFromDetail(coinId: string, detail: Record<string, unknown>): Promise<string> {
   const summary = parseCoinSummary(detail)
   const { name, symbol } = summary
 
