@@ -12,6 +12,8 @@ export async function startBot(): Promise<void> {
   await bot.api.setMyCommands([
     { command: "research", description: "完整研究报告，例如：/research bitcoin" },
     { command: "r", description: "简写形式，例如：/r BTC" },
+    { command: "lookup", description: "查询已存档报告，例如：/lookup bitcoin" },
+    { command: "l", description: "简写形式，例如：/l BTC" },
     { command: "help", description: "使用说明" },
   ])
 
