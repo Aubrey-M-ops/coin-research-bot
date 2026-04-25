@@ -1,13 +1,27 @@
-.PHONY: install start typecheck deploy-ssh
+.PHONY: install start test typecheck check deploy-ssh
 
 install:
-	bun install
+	@echo "📦 Installing dependencies..."
+	@bun install
+	@echo "✅ Done"
 
 start:
-	bun run start
+	@echo "🤖 Starting bot..."
+	@bun run index.ts
+
+test:
+	@echo "🧪 Running tests..."
+	@bun test
 
 typecheck:
-	bun run typecheck
+	@echo "🔍 Type checking..."
+	@tsc --noEmit
+	@echo "✅ No type errors"
+
+check: typecheck test
+	@echo "✅ All checks passed"
 
 deploy-ssh:
-	bun run deploy:ssh
+	@echo "🚀 Deploying to VPS..."
+	@bash scripts/deploy-ssh.sh
+	@echo "✅ Deployment complete"
