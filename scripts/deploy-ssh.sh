@@ -62,6 +62,9 @@ rsync \
   -e "ssh -p $SSH_PORT" \
   ./ "$SSH_HOST:$SSH_PATH/"
 
+echo "==> Copying local .env to ${SSH_HOST}:${REMOTE_ENV_FILE}"
+scp -P "$SSH_PORT" .env "$SSH_HOST:$REMOTE_ENV_FILE"
+
 ssh -p "$SSH_PORT" "$SSH_HOST" "
   set -euo pipefail
   cd '$SSH_PATH'
