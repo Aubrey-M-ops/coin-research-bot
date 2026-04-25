@@ -3,11 +3,11 @@ import { Cron } from "croner"
 import { getLeastRecentlyReviewedCoin } from "../db/coinRepository.ts"
 import { researchCoinById } from "../agent/research.ts"
 
-const CHANNEL_ID = Bun.env.TELEGRAM_CHANNEL_ID
+const BOT_CHAT_ID = Bun.env.TELEGRAM_BOT_CHAT_ID
 
 export function scheduleDailyReview(bot: Bot): void {
-  if (!CHANNEL_ID) {
-    console.warn("[scheduler] TELEGRAM_CHANNEL_ID not set; daily review disabled")
+  if (!BOT_CHAT_ID) {
+    console.warn("[scheduler] TELEGRAM_BOT_CHAT_ID not set; daily review disabled")
     return
   }
 
@@ -27,12 +27,12 @@ async function runDailyReview(bot: Bot): Promise<void> {
     return
   }
 
-  const channelId = Number(CHANNEL_ID)
+  const botChatId = Number(BOT_CHAT_ID)
 
   try {
     const report = await researchCoinById(coin.coin_id)
     const header = formatDailyReviewHeader(coin.name, coin.symbol, coin.last_analyzed_at, coin.analysis_count)
-    await bot.api.sendMessage(channelId, `${header}\n\n${report}`, {
+    await bot.api.sendMessage(botChatId, `${header}\n\n${report}`, {
       parse_mode: "Markdown",
       link_preview_options: { is_disabled: true },
     })
@@ -41,7 +41,7 @@ async function runDailyReview(bot: Bot): Promise<void> {
     console.error("[scheduler] Daily review failed:", err)
     const msg = err instanceof Error ? err.message.slice(0, 200) : String(err).slice(0, 200)
     try {
-      await bot.api.sendMessage(channelId, `❌ 每日复习失败：${msg}`)
+      await bot.api.sendMessage(botChatId, `❌ 每日复习失败：${msg}`)
     } catch (sendErr) {
       console.error("[scheduler] Failed to send error notice:", sendErr)
     }
